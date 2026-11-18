@@ -47,7 +47,8 @@ curl -sSL https://raw.githubusercontent.com/andonebekasi/wazuh/main/install_wazu
 
 > [!TIP]
 > Parameter `-s --` digunakan agar bash membaca skrip dari stdin dan meneruskan argumen setelah tanda `--` ke dalam skrip installer.  
-> Panduan lengkap parameter CLI, konfigurasi firewall, cloud-init AWS, dan troubleshooting Linux tersedia di **[wazuh_scripts_guide.md](wazuh_scripts_guide.md)**.
+> Panduan lengkap parameter CLI, konfigurasi firewall, cloud-init AWS, dan troubleshooting Linux tersedia di **[wazuh_scripts_guide.md](wazuh_scripts_guide.md)**.  
+> Sinkronisasi waktu (NTP) dan penamaan server/agent sangat krusial untuk keakuratan korelasi log SIEM; panduan konfigurasi Hostname & NTP Indonesia tersedia di **[panduan_ganti_hostname_dan_ntp_indonesia.md](panduan_ganti_hostname_dan_ntp_indonesia.md)**.
 
 #### 3. Install & Enroll Wazuh Agent di Windows (PowerShell):
 Buka **PowerShell** sebagai Administrator (*Run as Administrator*) pada Windows (mendukung Windows Server 2016-2025, Windows 10 & 11):
@@ -134,6 +135,10 @@ Start-Service -Name "WazuhSvc"
 - [keterangan_tambahan_agent_baru_tidak_muncul_dashboard.md](keterangan_tambahan_agent_baru_tidak_muncul_dashboard.md)  
   *Diagnosa dan solusi ketika service agent sudah running namun belum muncul di Wazuh Dashboard.*
 
+#### 8. Prasyarat & Konfigurasi Sistem Linux (Hostname & NTP)
+- [panduan_ganti_hostname_dan_ntp_indonesia.md](panduan_ganti_hostname_dan_ntp_indonesia.md)  
+  *Panduan komprehensif mengubah hostname, timezone (WIB/WITA/WIT), jam manual, dan sinkronisasi otomatis NTP Pool Indonesia (Chrony, timesyncd, ntpd) di semua distro Linux.*
+
 ---
 
 ## 🇬🇧 English
@@ -175,7 +180,8 @@ curl -sSL https://raw.githubusercontent.com/andonebekasi/wazuh/main/install_wazu
 
 > [!TIP]
 > The `-s --` flag tells bash to read the script from standard input and pass everything after `--` as command-line arguments to the installer.  
-> See **[wazuh_scripts_guide.md](wazuh_scripts_guide.md)** for a complete reference on CLI options, firewall parameters, AWS cloud-init setups, and troubleshooting.
+> See **[wazuh_scripts_guide.md](wazuh_scripts_guide.md)** for a complete reference on CLI options, firewall parameters, AWS cloud-init setups, and troubleshooting.  
+> Accurate system time (NTP) and proper host naming are critical for SIEM log correlation; see **[panduan_ganti_hostname_dan_ntp_indonesia.md](panduan_ganti_hostname_dan_ntp_indonesia.md)** for hostname and Indonesian NTP setup.
 
 #### 3. Install & Enroll Wazuh Agent on Windows (PowerShell):
 Open **PowerShell** as Administrator (*Run as Administrator*) on Windows (supports Windows Server 2016-2025, Windows 10 & 11):
@@ -261,6 +267,10 @@ Start-Service -Name "WazuhSvc"
   *Guide on renaming a Wazuh Agent safely without breaking `client.keys`.*
 - [keterangan_tambahan_agent_baru_tidak_muncul_dashboard.md](keterangan_tambahan_agent_baru_tidak_muncul_dashboard.md)  
   *Diagnosis and solution when the agent service is active but does not appear on the Wazuh Dashboard.*
+
+#### 8. Linux System Prerequisites & Time Synchronization (Hostname & NTP)
+- [panduan_ganti_hostname_dan_ntp_indonesia.md](panduan_ganti_hostname_dan_ntp_indonesia.md)  
+  *Comprehensive guide for configuring hostname, timezone (WIB/WITA/WIT), and automated Indonesian NTP pool time synchronization (Chrony, systemd-timesyncd, ntpd) across Linux distributions.*
 
 ---
 
