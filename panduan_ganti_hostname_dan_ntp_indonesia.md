@@ -8,8 +8,9 @@ Panduan ini berisi langkah-langkah terstruktur dan komprehensif untuk mengubah *
 1. [Informasi Dasar (Pool NTP & Timezone Indonesia)](#1-informasi-dasar)
 2. [Panduan Mengganti Hostname](#2-panduan-mengganti-hostname)
    - [A. Distro Modern berbasis Systemd (Universal)](#a-distro-modern-berbasis-systemd-universal)
-   - [B. Distro Minimal / Non-Systemd (Alpine Linux)](#b-distro-minimal--non-systemd-alpine-linux)
-   - [C. Pencegahan Reset Hostname pada Cloud VPS (AWS/OCI/GCP/Azure)](#c-pencegahan-reset-hostname-pada-cloud-vps)
+   - [B. Menerapkan Hostname Baru Seketika (Tanpa Logout / Restart)](#b-menerapkan-hostname-baru-seketika-tanpa-logout--restart)
+   - [C. Distro Minimal / Non-Systemd (Alpine Linux)](#c-distro-minimal--non-systemd-alpine-linux)
+   - [D. Pencegahan Reset Hostname pada Cloud VPS (AWS/OCI/GCP/Azure)](#d-pencegahan-reset-hostname-pada-cloud-vps)
 3. [Panduan Mengganti Waktu & Timezone Indonesia via CLI](#3-panduan-mengganti-waktu--timezone-indonesia-via-cli)
    - [A. Mengatur Timezone Indonesia (WIB, WITA, WIT)](#a-mengatur-timezone-indonesia-wib-wita-wit)
    - [B. Mengatur Jam & Tanggal secara Manual (CLI)](#b-mengatur-jam--tanggal-secara-manual-cli)
@@ -79,7 +80,54 @@ hostname -f
 
 ---
 
-### B. Distro Minimal / Non-Systemd (Alpine Linux)
+### B. Menerapkan Hostname Baru Seketika (Tanpa Logout / Restart)
+
+Setelah mengubah hostname (misal dengan `hostnamectl`), tampilan prompt terminal Anda (`user@old-hostname:~$ `) biasanya **belum berubah secara otomatis**. 
+
+Hal ini disebabkan oleh:
+- Kernel sistem operasi langsung menggunakan nama baru saat itu juga.
+- Namun, **shell aktif (Bash / Zsh)** meng-*cache* nilai hostname saat Anda pertama kali membuka sesi koneksi SSH.
+
+> [!TIP]
+> Anda **TIDAK PERLU** melakukan restart OS (`reboot`) atau logout dari koneksi SSH. Gunakan salah satu metode berikut:
+
+#### 1. Cara Paling Cepat & Praktis: Reload Shell (`exec bash`)
+Jalankan perintah ini di sesi terminal Anda:
+```bash
+exec bash
+```
+Atau jika menggunakan shell default pengguna (mendukung Bash, Zsh, Sh) sebagai login shell:
+```bash
+exec $SHELL -l
+```
+*Perintah `exec` menggantikan proses shell aktif saat ini dengan shell baru secara instan di dalam koneksi SSH yang sama, sehingga prompt terminal langsung berubah (`user@server-prod-01:~$ `) tanpa putus koneksi.*
+
+#### 2. Alternatif: Update Variabel Shell Manual (Tanpa Reload Shell)
+Jika Anda sedang menjalankan proses interaktif di shell dan tidak ingin mereloadnya:
+```bash
+export HOSTNAME=$(hostname)
+```
+
+#### 3. Update Hostname Kernel Seketika (Transient Hostname)
+Untuk memastikan kernel langsung mengenali nama baru secara instan di semua proses:
+```bash
+sudo hostname server-prod-01
+```
+
+#### 4. Refresh Daemon Logging (Syslog & Journald)
+Agar service log sistem langsung mencatat log baru menggunakan hostname baru tanpa perlu reboot mesin:
+- **Systemd Journald**:
+  ```bash
+  sudo systemctl restart systemd-journald
+  ```
+- **Rsyslog** (jika sistem menggunakan rsyslog):
+  ```bash
+  sudo systemctl restart rsyslog
+  ```
+
+---
+
+### C. Distro Minimal / Non-Systemd (Alpine Linux)
 
 Alpine Linux menggunakan **OpenRC**, bukan systemd.
 
@@ -102,11 +150,12 @@ Tambahkan:
 ```sh
 sudo hostname -F /etc/hostname
 sudo rc-service hostname restart
+exec sh
 ```
 
 ---
 
-### C. Pencegahan Reset Hostname pada Cloud VPS
+### D. Pencegahan Reset Hostname pada Cloud VPS
 Pada cloud provider (AWS EC2, Oracle Cloud Infrastructure, Google Cloud, Azure, DigitalOcean), hostname sering di-overwrite kembali ke nama default saat instance di-reboot karena adanya service **`cloud-init`**.
 
 Agar perubahan hostname permanen di Cloud VPS:
@@ -458,6 +507,10 @@ chronyc sources -v
 | **Arch Linux** | `hostnamectl set-hostname <nama>` | `timedatectl set-timezone Asia/Jakarta` | `chrony` | `/etc/chrony.conf` | `chronyd` |
 | **Alpine Linux** | `echo "<nama>" > /etc/hostname` | `ln -sf /usr/share/zoneinfo/Asia/Jakarta /etc/localtime` | `chrony` | `/etc/chrony/chrony.conf` | `chronyd` (OpenRC) |
 
+> [!TIP]
+> **Terapkan Hostname Seketika Tanpa Logout / Restart**:
+> Jalankan `exec bash` (atau `exec $SHELL -l`) di terminal Anda segera setelah mengganti hostname agar prompt bash langsung menampilkan hostname baru tanpa perlu keluar dari SSH atau me-reboot mesin.
+
 ---
 
 ## 6. Skrip Otomatisasi (Universal Bash Script)
@@ -592,6 +645,7 @@ echo "=========================================================="
 echo " [SELESAI] Konfigurasi Hostname dan NTP Berhasil!"
 echo " Hostname saat ini : $(hostname)"
 echo " Waktu saat ini    : $(date)"
+echo " Tips              : Ketik 'exec bash' agar prompt terminal Anda langsung berubah tanpa logout SSH."
 echo "=========================================================="
 chronyc sources -v || true
 ```
@@ -600,4 +654,10 @@ chronyc sources -v || true
 ```bash
 chmod +x setup_hostname_ntp_id.sh
 sudo ./setup_hostname_ntp_id.sh nama-server-baru
+
+# Refresh tampilan prompt tanpa logout:
+exec bash
 ```
+
+> [!NOTE]
+> Menjalankan perintah `exec bash` di akhir akan langsung memperbarui tampilan prompt terminal (`user@nama-server-baru:~$ `) tanpa perlu disconnect dari SSH.
