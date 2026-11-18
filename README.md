@@ -28,6 +28,38 @@ Direktori ini berisi seluruh dokumentasi, panduan arsitektur, instalasi, konfigu
 - [wazuh_scripts_guide.md](wazuh_scripts_guide.md)  
   *Panduan lengkap penggunaan skrip otomasi server dan agent, opsi CLI flag, port firewall, dan troubleshooting.*
 
+#### ⚡ Quick Install via `curl | bash` (One-Liner):
+
+Skrip otomasi ini mendukung instalasi instan pada **Ubuntu, Debian, RHEL, CentOS Stream, AlmaLinux, Rocky Linux, Oracle Linux, serta Amazon Linux 2 & 2023** tanpa perlu melakukan clone Git repository:
+
+**A. Install Wazuh Server v4.14 All-in-One:**
+```bash
+# 1. Instalasi Standar All-in-One:
+curl -sSL https://raw.githubusercontent.com/andonebekasi/wazuh/main/install_wazuh_server.sh | sudo bash
+
+# 2. Instalasi + Otomatis Membuka Port Firewall (1514, 1515, 443, 55000):
+curl -sSL https://raw.githubusercontent.com/andonebekasi/wazuh/main/install_wazuh_server.sh | sudo bash -s -- --open-firewall
+
+# 3. Instalasi pada VM Lab/Testing dengan RAM Terbatas (< 4 GB):
+curl -sSL https://raw.githubusercontent.com/andonebekasi/wazuh/main/install_wazuh_server.sh | sudo bash -s -- --force --open-firewall
+```
+
+**B. Install & Enroll Wazuh Agent v4.14:**
+```bash
+# 1. Instalasi Cepat (Otomatis hostname & grup 'default'):
+curl -sSL https://raw.githubusercontent.com/andonebekasi/wazuh/main/install_wazuh_agent.sh | sudo bash -s -- -m <IP_WAZUH_MANAGER>
+
+# 2. Instalasi Kustom Nama Agent, Multi-Grup & Mode Non-Interaktif:
+curl -sSL https://raw.githubusercontent.com/andonebekasi/wazuh/main/install_wazuh_agent.sh | sudo bash -s -- -m 172.31.10.50 -n "web-prod-01" -g "production,web" -y
+
+# 3. Instalasi dengan Registration Password (authd.pass):
+curl -sSL https://raw.githubusercontent.com/andonebekasi/wazuh/main/install_wazuh_agent.sh | sudo bash -s -- -m 172.31.10.50 -p "PasswordRahasia123"
+```
+
+> [!TIP]
+> Parameter `-s --` digunakan agar bash membaca skrip dari stdin dan meneruskan argumen setelah tanda `--` ke dalam skrip installer.  
+> Panduan lengkap parameter CLI, konfigurasi firewall, cloud-init AWS, dan troubleshooting tersedia di **[wazuh_scripts_guide.md](wazuh_scripts_guide.md)**.
+
 ---
 
 ### 3. Instalasi & Upgrade Wazuh Server

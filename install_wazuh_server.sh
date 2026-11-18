@@ -46,6 +46,18 @@ log_header() {
     echo -e "\n${CYAN}${BOLD}=== $1 ===${NC}\n"
 }
 
+prompt_read() {
+    local prompt_msg="$1"
+    local var_name="$2"
+    if [ -t 0 ]; then
+        read -rp "$prompt_msg" "$var_name"
+    elif [ -r /dev/tty ]; then
+        read -rp "$prompt_msg" "$var_name" < /dev/tty
+    else
+        read -rp "$prompt_msg" "$var_name" || true
+    fi
+}
+
 # ------------------------------------------------------------------------------
 # Default Settings & Flags
 # ------------------------------------------------------------------------------
@@ -80,6 +92,9 @@ SUPPORTED OPERATING SYSTEMS:
   * Amazon Linux 2 & Amazon Linux 2023
 
 EXAMPLES:
+  # One-liner via curl:
+  curl -sSL https://raw.githubusercontent.com/andonebekasi/wazuh/main/install_wazuh_server.sh | sudo bash -s -- --open-firewall
+
   # Standar All-in-One installation:
   sudo bash $(basename "$0")
 
@@ -230,7 +245,7 @@ check_system_resources() {
     if [[ $CPU_CORES -lt 2 ]]; then
         log_warn "Wazuh Server requires at least 2 CPU cores (4 cores recommended for production)."
         if [[ "$FORCE_INSTALL" != true && "$CHECK_ONLY" != true ]]; then
-            read -rp "Do you wish to proceed anyway? (y/N): " proceed_cpu
+            prompt_read "Do you wish to proceed anyway? (y/N): " proceed_cpu
             if [[ ! "$proceed_cpu" =~ ^[Yy]$ ]]; then
                 log_error "Installation aborted by user due to insufficient CPU resources."
                 exit 1
@@ -249,7 +264,7 @@ check_system_resources() {
         log_warn "Total RAM is below 4 GB (${TOTAL_RAM_MB} MB). Wazuh Indexer may fail or encounter OOM crashes!"
         log_warn "Recommended minimal RAM is 4 GB (8 GB+ for production)."
         if [[ "$FORCE_INSTALL" != true && "$CHECK_ONLY" != true ]]; then
-            read -rp "Do you wish to bypass this warning and force installation? (y/N): " proceed_ram
+            prompt_read "Do you wish to bypass this warning and force installation? (y/N): " proceed_ram
             if [[ ! "$proceed_ram" =~ ^[Yy]$ ]]; then
                 log_error "Installation aborted due to insufficient RAM. Allocate at least 4 GB RAM or run with --force."
                 exit 1
@@ -265,7 +280,7 @@ check_system_resources() {
     if [[ -n "$FREE_DISK_GB" && "$FREE_DISK_GB" -lt 10 ]]; then
         log_warn "Free disk space is less than 10 GB (~${FREE_DISK_GB} GB). OpenSearch and Wazuh logs require sufficient disk capacity."
         if [[ "$FORCE_INSTALL" != true && "$CHECK_ONLY" != true ]]; then
-            read -rp "Do you wish to proceed anyway? (y/N): " proceed_disk
+            prompt_read "Do you wish to proceed anyway? (y/N): " proceed_disk
             if [[ ! "$proceed_disk" =~ ^[Yy]$ ]]; then
                 log_error "Installation aborted due to low disk space."
                 exit 1

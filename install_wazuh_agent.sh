@@ -45,6 +45,18 @@ log_header() {
     echo -e "\n${CYAN}${BOLD}=== $1 ===${NC}\n"
 }
 
+prompt_read() {
+    local prompt_msg="$1"
+    local var_name="$2"
+    if [ -t 0 ]; then
+        read -rp "$prompt_msg" "$var_name"
+    elif [ -r /dev/tty ]; then
+        read -rp "$prompt_msg" "$var_name" < /dev/tty
+    else
+        read -rp "$prompt_msg" "$var_name" || true
+    fi
+}
+
 # ------------------------------------------------------------------------------
 # Default Settings
 # ------------------------------------------------------------------------------
@@ -90,6 +102,9 @@ SUPPORTED OPERATING SYSTEMS:
   * Amazon Linux 2 & Amazon Linux 2023
 
 EXAMPLES:
+  # One-liner via curl:
+  curl -sSL https://raw.githubusercontent.com/andonebekasi/wazuh/main/install_wazuh_agent.sh | sudo bash -s -- -m 192.168.1.100
+
   # Quick install pointing to Wazuh Manager IP:
   sudo bash $(basename "$0") -m 192.168.1.100
 
@@ -171,7 +186,7 @@ validate_parameters() {
             exit 1
         fi
         echo -e "${YELLOW}${BOLD}Wazuh Manager IP or FQDN is required.${NC}"
-        read -rp "Enter Wazuh Manager IP or Domain: " WAZUH_MANAGER
+        prompt_read "Enter Wazuh Manager IP or Domain: " WAZUH_MANAGER
         if [[ -z "$WAZUH_MANAGER" ]]; then
             log_error "Manager IP cannot be empty. Aborting."
             exit 1
@@ -323,7 +338,7 @@ check_connectivity() {
         echo ""
 
         if [[ "$NON_INTERACTIVE" != true ]]; then
-            read -rp "Do you want to continue the installation anyway? (y/N): " proceed_conn
+            prompt_read "Do you want to continue the installation anyway? (y/N): " proceed_conn
             if [[ ! "$proceed_conn" =~ ^[Yy]$ ]]; then
                 log_error "Installation aborted by user."
                 exit 1

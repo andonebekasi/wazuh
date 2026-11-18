@@ -13,6 +13,33 @@ Panduan ini menjelaskan cara penggunaan skrip otomasi Bash untuk instalasi dan k
 
 ---
 
+## ⚡ Quick Start: Instalasi Cepat via `curl | bash` (One-Liner)
+
+Bagi Anda yang ingin langsung mengeksekusi instalasi pada server atau endpoint tanpa perlu mengklon repositori Git:
+
+### 🔹 Wazuh Server v4.14 (All-in-One):
+```bash
+# Instalasi Standar:
+curl -sSL https://raw.githubusercontent.com/andonebekasi/wazuh/main/install_wazuh_server.sh | sudo bash
+
+# Instalasi + Otomatis Membuka Port Firewall (1514, 1515, 443, 55000):
+curl -sSL https://raw.githubusercontent.com/andonebekasi/wazuh/main/install_wazuh_server.sh | sudo bash -s -- --open-firewall
+```
+
+### 🔹 Wazuh Agent v4.14:
+```bash
+# Instalasi & Auto-Enrollment ke Wazuh Manager:
+curl -sSL https://raw.githubusercontent.com/andonebekasi/wazuh/main/install_wazuh_agent.sh | sudo bash -s -- -m <IP_WAZUH_MANAGER>
+
+# Contoh Lengkap (Nama Agent Kustom, Multi-Grup, Non-Interaktif):
+curl -sSL https://raw.githubusercontent.com/andonebekasi/wazuh/main/install_wazuh_agent.sh | sudo bash -s -- -m 172.31.10.50 -n "web-prod-01" -g "production,web" -y
+```
+
+> [!NOTE]
+> Parameter `-s --` pada perintah `sudo bash -s -- [FLAGS]` berfungsi memberitahu `bash` untuk membaca skrip dari `stdin` (`-s`) dan meneruskan argumen setelah tanda `--` langsung ke dalam skrip installer.
+
+---
+
 ## 🖥️ Matriks Dukungan Sistem Operasi (OS Matrix)
 
 Kedua skrip secara otomatis mendeteksi distribusi Linux, arsitektur CPU (`x86_64` / `aarch64`), dan package manager yang sesuai:
@@ -54,21 +81,39 @@ Skrip ini menjalankan instalasi lengkap **All-in-One** (Indexer, Manager, Filebe
 
 ### 1.2 Cara Menjalankan Skrip Server
 
+#### Opsi A: Eksekusi Langsung via `curl | bash` (Quick One-Liner — Tanpa Clone Repo)
+
 ```bash
+# 1. Instalasi Standar (All-in-One):
+curl -sSL https://raw.githubusercontent.com/andonebekasi/wazuh/main/install_wazuh_server.sh | sudo bash
+
+# 2. Instalasi dengan pembukaan port firewall otomatis (1514, 1515, 443, 55000):
+curl -sSL https://raw.githubusercontent.com/andonebekasi/wazuh/main/install_wazuh_server.sh | sudo bash -s -- --open-firewall
+
+# 3. Instalasi pada VM lab/testing dengan RAM terbatas (< 4 GB):
+curl -sSL https://raw.githubusercontent.com/andonebekasi/wazuh/main/install_wazuh_server.sh | sudo bash -s -- --force --open-firewall
+
+# 4. Hanya menjalankan pengecekan kompatibilitas hardware & kernel tuning tanpa install:
+curl -sSL https://raw.githubusercontent.com/andonebekasi/wazuh/main/install_wazuh_server.sh | sudo bash -s -- --check-only
+```
+
+#### Opsi B: Unduh Skrip Terlebih Dahulu (Manual Run)
+
+```bash
+# Unduh skrip server
+curl -sSLO https://raw.githubusercontent.com/andonebekasi/wazuh/main/install_wazuh_server.sh
+
 # Berikan hak eksekusi
 chmod +x install_wazuh_server.sh
 
-# 1. Instalasi Standar (All-in-One):
+# 1. Instalasi Standar:
 sudo ./install_wazuh_server.sh
 
-# 2. Instalasi dengan pembukaan port firewall lokal otomatis:
+# 2. Instalasi dengan auto-firewall:
 sudo ./install_wazuh_server.sh --open-firewall
 
-# 3. Instalasi pada VM lab/testing dengan RAM terbatas (< 4 GB):
+# 3. Instalasi bypass RAM/CPU:
 sudo ./install_wazuh_server.sh --force --open-firewall
-
-# 4. Hanya menjalankan pengecekan kompatibilitas & tuning tanpa install:
-sudo ./install_wazuh_server.sh --check-only
 ```
 
 ### 1.3 Opsi CLI Flag Server
@@ -103,24 +148,42 @@ Skrip ini memasang **Wazuh Agent v4.14** pada endpoint client dan langsung menda
 
 ### 2.2 Cara Menjalankan Skrip Agent
 
+#### Opsi A: Eksekusi Langsung via `curl | bash` (Quick One-Liner — Tanpa Clone Repo)
+
 ```bash
+# 1. Instalasi Cepat (Otomatis menggunakan hostname server & grup 'default'):
+curl -sSL https://raw.githubusercontent.com/andonebekasi/wazuh/main/install_wazuh_agent.sh | sudo bash -s -- -m <IP_WAZUH_MANAGER>
+
+# Contoh dengan IP Manager spesifik:
+curl -sSL https://raw.githubusercontent.com/andonebekasi/wazuh/main/install_wazuh_agent.sh | sudo bash -s -- -m 172.31.10.50
+
+# 2. Instalasi dengan Nama Kustom & Multi-Grup:
+curl -sSL https://raw.githubusercontent.com/andonebekasi/wazuh/main/install_wazuh_agent.sh | sudo bash -s -- -m 172.31.10.50 -n "web-prod-01" -g "production,web,dmz"
+
+# 3. Instalasi dengan Registration Password (authd.pass):
+curl -sSL https://raw.githubusercontent.com/andonebekasi/wazuh/main/install_wazuh_agent.sh | sudo bash -s -- -m 172.31.10.50 -n "db-oracle-01" -g "production,database" -p "PasswordRahasia123"
+
+# 4. Mode Non-Interaktif (Cocok untuk Scripting / Otomasi / Cloud-Init / Ansible):
+curl -sSL https://raw.githubusercontent.com/andonebekasi/wazuh/main/install_wazuh_agent.sh | sudo bash -s -- -m 172.31.10.50 -y
+```
+
+#### Opsi B: Unduh Skrip Terlebih Dahulu (Manual Run)
+
+```bash
+# Unduh skrip agent
+curl -sSLO https://raw.githubusercontent.com/andonebekasi/wazuh/main/install_wazuh_agent.sh
+
 # Berikan hak eksekusi
 chmod +x install_wazuh_agent.sh
 
-# 1. Instalasi Cepat (Otomatis menggunakan hostname server & grup 'default'):
-sudo ./install_wazuh_agent.sh -m <IP_WAZUH_MANAGER>
-
-# Contoh:
+# 1. Instalasi Cepat:
 sudo ./install_wazuh_agent.sh -m 172.31.10.50
 
 # 2. Instalasi dengan Nama Kustom & Multi-Grup:
 sudo ./install_wazuh_agent.sh -m 172.31.10.50 -n "web-prod-01" -g "production,web,dmz"
 
-# 3. Instalasi dengan Registration Password (authd.pass):
-sudo ./install_wazuh_agent.sh -m 172.31.10.50 -n "db-oracle-01" -g "production,database" -p "PasswordRahasia123"
-
-# 4. Mode Non-Interaktif (Cocok untuk Scripting / Cloud-Init / AWS SSM):
-sudo ./install_wazuh_agent.sh -m 172.31.10.50 -y
+# 3. Instalasi dengan Password Registrasi:
+sudo ./install_wazuh_agent.sh -m 172.31.10.50 -p "PasswordRahasia123"
 ```
 
 ### 2.3 Opsi CLI Flag Agent
@@ -157,8 +220,12 @@ sudo systemctl restart wazuh-manager
 ```
 
 ### Langkah di Sisi Agent:
-Jalankan skrip instalasi agent dengan menambahkan flag `-p`:
+Jalankan skrip instalasi agent dengan menambahkan flag `-p` (bisa via `curl | bash` atau skrip lokal):
 ```bash
+# Opsi 1: Via curl | bash (One-Liner)
+curl -sSL https://raw.githubusercontent.com/andonebekasi/wazuh/main/install_wazuh_agent.sh | sudo bash -s -- -m <IP_WAZUH_SERVER> -p "KunciRahasiaWazuh2026!"
+
+# Opsi 2: Via skrip lokal
 sudo ./install_wazuh_agent.sh -m <IP_WAZUH_SERVER> -p "KunciRahasiaWazuh2026!"
 ```
 
@@ -172,12 +239,13 @@ Untuk melakukan deployment Wazuh Agent otomatis saat EC2 instance baru diluncurk
 #!/usr/bin/env bash
 set -e
 
-# Download skrip agent dari repository/S3 internal atau wget langsung
-curl -sSL -o /tmp/install_wazuh_agent.sh "https://raw.githubusercontent.com/your-repo/wazuh/main/install_wazuh_agent.sh"
-chmod +x /tmp/install_wazuh_agent.sh
+# Metode A: One-Liner langsung via curl | bash (Sangat direkomendasikan untuk User-Data / Cloud-Init):
+curl -sSL https://raw.githubusercontent.com/andonebekasi/wazuh/main/install_wazuh_agent.sh | bash -s -- -m "172.31.10.50" -g "production,aws-ec2" -y
 
-# Eksekusi secara silent/non-interaktif
-/tmp/install_wazuh_agent.sh -m "172.31.10.50" -g "production,aws-ec2" -y
+# Metode B: Unduh ke direktori /tmp terlebih dahulu:
+# curl -sSL -o /tmp/install_wazuh_agent.sh "https://raw.githubusercontent.com/andonebekasi/wazuh/main/install_wazuh_agent.sh"
+# chmod +x /tmp/install_wazuh_agent.sh
+# /tmp/install_wazuh_agent.sh -m "172.31.10.50" -g "production,aws-ec2" -y
 ```
 
 ---
